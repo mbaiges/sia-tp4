@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     pca = decomposition.PCA(n_components=n)
     # X - X_mean
-    X_centered = X - X.mean(axis=0)
+    X_centered = X - X.mean(axis=0) # sacar
     pca.fit(X_centered)
     X_pca = pca.transform(X_centered)
 
