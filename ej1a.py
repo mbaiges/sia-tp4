@@ -6,6 +6,7 @@ import random
 import math
 import copy
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
 
 ## data filenames
 europe_csv = ""

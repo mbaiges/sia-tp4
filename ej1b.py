@@ -47,8 +47,9 @@ class Neuron:
         # print(f's * (entry - s*self.weights) = {s * (entry - s*self.weights)}')
         # print(f'learning_level * s * (entry - s*self.weights) = {learning_level * s * (entry - s*self.weights)}')
         # print("----------------------------------------------")
-        self.weights = self.weights + learning_level * s * (entry - s*self.weights)
-        # self.weights = self.weights + learning_level * s * (entry - self.weights*s) # https://www.cse-lab.ethz.ch/wp-content/uploads/2019/10/tutorial_3_ojas_rule_pdf.pdf 
+
+        # self.weights = self.weights + learning_level * s * (entry - s*self.weights) # filminas
+        self.weights = self.weights + learning_level * s * (entry - self.weights*s) # https://www.cse-lab.ethz.ch/wp-content/uploads/2019/10/tutorial_3_ojas_rule_pdf.pdf 
 
         # w = self.weights
         # norma = math.sqrt(sum(w*w))
@@ -99,8 +100,8 @@ def oja(data, epochs, initial_learning_level):
         epoch_n += 1
 
 
-        # if learning_level / 2 > 0.001:
-        #     learning_level = learning_level / 2 
+        if learning_level / 2 > 0.0001:
+            learning_level = learning_level / 2 
 
     w = neuron.weights
     norma = math.sqrt(sum(w*w))
@@ -132,8 +133,8 @@ if __name__ == '__main__':
     std_data = standardize_data(data)
 
     # oja
-    epochs = 150000
-    initial_learning_level = 0.001
+    epochs = 15000
+    initial_learning_level = 0.1
 
     weights = oja(std_data, epochs, initial_learning_level)
     

@@ -123,4 +123,4 @@ if __name__ == "__main__":
 
     #Call the function. Use only the 2 PCs.
     myplot(X_pca[:,0:2], np.transpose(pca.components_[0:2, :]), pca.explained_variance_ratio_[0:2], features, countries)
-    # plt.show()
+    plt.show()
