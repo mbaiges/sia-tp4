@@ -5,6 +5,7 @@ from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 ## data filenames
 europe_csv = ""
@@ -58,10 +59,8 @@ if __name__ == "__main__":
     n = len(features)
 
     pca = decomposition.PCA(n_components=n)
-    # X - X_mean
-    X_centered = X - X.mean(axis=0) # sacar
-    pca.fit(X_centered)
-    X_pca = pca.transform(X_centered)
+    pca.fit(X)
+    X_pca = pca.transform(X)
 
     for i, component in enumerate(pca.components_):
         print("{} component: {}% of initial variance".format(i + 1, round(100 * pca.explained_variance_ratio_[i], 2)))
@@ -124,4 +123,4 @@ if __name__ == "__main__":
 
     #Call the function. Use only the 2 PCs.
     myplot(X_pca[:,0:2], np.transpose(pca.components_[0:2, :]), pca.explained_variance_ratio_[0:2], features, countries)
-    plt.show()
+    # plt.show()

@@ -47,9 +47,8 @@ def get_data():
 
     return df
 
-
 def standardize_data(data):
-    return (data - np.mean(data, axis=0)) / np.var(data, axis=0)
+    return StandardScaler().fit_transform(data)
 
 def init_output_neuron_matrix(k, entries, init_with_dataset):
 	output_neuron_mtx = []
@@ -215,3 +214,5 @@ if __name__ == '__main__':
     output_neuron_mtx = kohonen(std_data, k, radius, init_with_dataset, eta_f)
 
     display_final_assignments(df, std_data, output_neuron_mtx)
+
+    exit(0)
