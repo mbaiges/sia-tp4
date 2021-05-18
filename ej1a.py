@@ -43,8 +43,6 @@ def get_data():
     name_and_features = ["Country"].extend(features)
 
     df = pd.read_csv(europe_csv, names=name_and_features)
-    df = df[1:]
-    df.index = range(0,len(df))
 
     return df
 
@@ -135,8 +133,28 @@ def display_results(output_neuron_mtx):
 	for i in range(0,k):
 		for j in range (0,k):
 			a[i,j] = output_neuron_mtx[i][j].hit_count
-	
-	plt.imshow(a, cmap='hot', interpolation='nearest')
+
+	fig, ax = plt.subplots()
+	k = len(output_neuron_mtx)
+	ax.set_title(f'Entries per node with k={k}')
+	im = plt.imshow(a, cmap='hot', interpolation='nearest')
+	ax.set_xticks(np.arange(k))
+	ax.set_yticks(np.arange(k))
+	ax.set_xticklabels(range(k))
+	ax.set_yticklabels(range(k))
+
+	# Loop over data dimensions and create text annotations.
+	max_val = np.amax(np.array(a))
+
+	for i in range(k):
+		for j in range(k):
+			if a[i][j] > max_val/2:
+				color = "k"
+			else:
+				color = "w"
+			text = ax.text(j, i, f'{int(a[i][j])}', ha="center", va="center", color=color)
+
+	plt.colorbar(im)
 	plt.show()
 
 def display_u_matrix(output_neuron_mtx, radius): #grey matrix
@@ -151,23 +169,65 @@ def display_u_matrix(output_neuron_mtx, radius): #grey matrix
 			for (ne_i, ne_j) in ne:
 				d += get_distance(output_neuron_mtx[i][j].weights,output_neuron_mtx[ne_i][ne_j].weights)
 			a[i,j] = d/cant
-	plt.imshow(a, cmap='hot', interpolation='nearest')
+
+	fig, ax = plt.subplots()
+	k = len(output_neuron_mtx)
+	ax.set_title(f'U Matrix with k={k}')
+	im = plt.imshow(a, cmap='Greys', interpolation='nearest')
+	ax.set_xticks(np.arange(k))
+	ax.set_yticks(np.arange(k))
+	ax.set_xticklabels(range(k))
+	ax.set_yticklabels(range(k))
+
+	# Loop over data dimensions and create text annotations.
+	max_val = np.amax(np.array(a))
+
+	for i in range(k):
+		for j in range(k):
+			if a[i][j] > max_val/2:
+				color = "w"
+			else:
+				color = "k"
+			text = ax.text(j, i, f'{a[i][j]:.3f}', ha="center", va="center", color=color)
+
+	plt.colorbar(im)
 	plt.show()
 
 
 def display_final_assignments(data, std_data, output_neuron_mtx):
-    k = len(output_neuron_mtx)
-    names = [ [ [] for j in range(0, k) ] for i in range(0, k) ]
-    a = np.zeros((k, k))
-    # print(data)
-    for i in range(0, std_data.shape[0]):
-        entry = std_data[i]
-        (x,y) = find_neuron(output_neuron_mtx, entry)
-        a[x,y] += 1
-        names[x][y].append(data['Country'].values.tolist()[i])
-    a = a / np.std(a)
-    plt.imshow(a, cmap='hot', interpolation='nearest')
-    plt.show()
+	k = len(output_neuron_mtx)
+	names = [ [ [] for j in range(0, k) ] for i in range(0, k) ]
+	a = np.zeros((k, k))
+	# print(data)
+	for i in range(0, std_data.shape[0]):
+		entry = std_data[i]
+		(x,y) = find_neuron(output_neuron_mtx, entry)
+		a[x,y] += 1
+		names[x][y].append(data['Country'].values.tolist()[i])
+		
+	fig, ax = plt.subplots()
+	k = len(output_neuron_mtx)
+	ax.set_title(f'Final entries per node with k={k}')
+	im = plt.imshow(a, cmap='hot', interpolation='nearest')
+	ax.set_xticks(np.arange(k))
+	ax.set_yticks(np.arange(k))
+	ax.set_xticklabels(range(k))
+	ax.set_yticklabels(range(k))
+
+	# Loop over data dimensions and create text annotations.
+
+	max_val = np.amax(np.array(a))
+
+	for i in range(k):
+		for j in range(k):
+			if a[i][j] > max_val/2:
+				color = "k"
+			else:
+				color = "w"
+			text = ax.text(j, i, f'{int(a[i][j])}', ha="center", va="center", color=color)
+
+	plt.colorbar(im)
+	plt.show()
 
 def kohonen(entries, k, initial_radius, init_with_dataset, eta_f):
     epochs = 25 * entries.shape[0]
@@ -205,7 +265,7 @@ if __name__ == '__main__':
     std_data = standardize_data(data)
 
     # kohonen
-    k = 16
+    k = 4
     radius = math.sqrt(2)
     init_with_dataset = True
     
