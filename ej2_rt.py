@@ -2,6 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import random
+import multiprocessing as mp
+import keyboard
+
+from plotters import plot_hopfield
 
 all_letters = {
 	
@@ -255,7 +259,24 @@ def process_input(W, patterns, input):
 	found_pttrn = -1
 	A = np.transpose(initial_p)
 	it = 0
-	max_iter = 50
+	max_iter = 200
+
+	plotter_q = mp.Queue()
+	plotter_q.cancel_join_thread()
+
+	plotter = mp.Process(target=plot_hopfield, args=((plotter_q),))
+	plotter.daemon = True
+	plotter.start()
+
+	output = [ [ 0 for a in range(0,5) ] for b in range(0,5) ]
+
+	for i in range(0, len(output)):
+		for j in range(0, len(output[i])):
+			output[i][j] = A[i*5+j, 0]
+
+	plotter_q.put({
+		'output': output
+	})
 
 	while not stable and it < max_iter:
 		# print("aAaaaa")
@@ -264,6 +285,18 @@ def process_input(W, patterns, input):
 		for h in range(0, B.shape[0]):
 			if B[h, 0] == 0:
 				B[h, 0] = A[h, 0]
+
+		B_arr = np.transpose(B)
+
+		output = [ [ 0 for a in range(0,5) ] for b in range(0,5) ]
+
+		for i in range(0, len(output)):
+			for j in range(0, len(output[i])):
+				output[i][j] = B_arr[0, i*5+j]
+
+		plotter_q.put({
+			'output': output
+		})
 
 		if np.array_equal(A,B):
 			stable = True
@@ -275,56 +308,37 @@ def process_input(W, patterns, input):
 					found_pttrn = k
 		A = B
 		it+=1
+		print(it)
 
-	# if spurious_state:
-		# print(f"reached stable config at spurious state")
+	plotter_q.put("STOP")
+	print("Press 'q' to finish plot")
+	keyboard.wait("q")
 	
 	return found_pttrn
 
-def hopfield(patterns, letters):
+def hopfield(patterns, letter, pctg):
 	
 	np.set_printoptions(linewidth=np.inf)
 
 	W = create_weights_matrix(patterns)
 	W_alt = create_weights_matrix_alt(patterns)
 	#W = W_alt
-	
-    #[ (para 0)[1pattern 2dopattern 3ro 4to spurius] (para 0.5)[...] ...]
-	
-	iterations = 1000
-	error_step = 0.05
 
-	for pattern in range(0, len(patterns)):
-		
-		results = []
-		print(f'Trying letter {letters[pattern]}')
+	hits = 0
+	false_hits = 0
+	print(f'pctg: {pctg:.2f}')
+	noised_pattern = noisify(patterns[0], pctg)
+	res = process_input(W, patterns, noised_pattern)
+	if res == 0:
+		hits+=1
+	elif res >= 0:
+		false_hits+=1
 
-		for pctg in np.arange(0, 1, 0.05):
-			hits = 0
-			false_hits = 0
-			print(f'pctg: {pctg:.2f}')
-			for i in range(0, iterations):
-				noised_pattern = noisify(patterns[pattern], pctg)
-				res = process_input(W, patterns, noised_pattern)
-				if res == pattern:
-					hits+=1
-				elif res >= 0:
-					false_hits+=1
-			results.append({
-				'hits': hits/iterations,
-				'false_hits': false_hits/iterations,
-				'spureous_hits': 1 - (false_hits + hits)/iterations
-			})
-
-		fig, ax = plt.subplots()
-		ax.set_title(f'Letter {letters[pattern]} pattern w/ {iterations} iterations and error step {error_step}')
-		l1, = ax.plot([pctg for pctg in np.arange(0, 1, error_step)], list(map(lambda a: a['hits'], results)), 'g-')
-		l2, = ax.plot([pctg for pctg in np.arange(0, 1, error_step)], list(map(lambda a: a['false_hits'], results)), 'b-')
-		l3, = ax.plot([pctg for pctg in np.arange(0, 1, error_step)], list(map(lambda a: a['spureous_hits'], results)), 'r-')
-		ax.set_xlabel('Noise pctg')	
-		ax.set_ylabel('Hit pctg')
-		ax.legend([l1, l2, l3], ['Hits', 'False hits', 'Spureous hits'])
-		plt.show()
+	results = {
+		'hits': hits,
+		'false_hits': false_hits,
+		'spureous_hits': 1 - (false_hits + hits)
+    }
 
 	return results
 
@@ -348,45 +362,7 @@ if __name__ == '__main__':
 	patterns_as_lists = convert_pattern_to_list(patterns_as_matrixes)
 
     # Hopfield
-	hopfield(patterns_as_lists, most_ortogonals)
+	pctg = 0.5
+	hopfield(patterns_as_lists, letter, pctg)
 
 	exit(0)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
