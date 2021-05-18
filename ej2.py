@@ -4,6 +4,7 @@ import copy
 import random
 
 all_letters = {
+	
 	'A': [	[-1,-1,+1,-1,-1],
 			[-1,+1,-1,+1,-1],
 			[+1,+1,+1,+1,+1],
@@ -254,13 +255,18 @@ def process_input(W, patterns, input):
 	found_pttrn = -1
 	A = np.transpose(initial_p)
 	i = 0
-	while not stable and i < 200:
+	max_iter = 200
+
+	intermediate_results = []
+
+	while not stable and i < max_iter:
 		# print("aAaaaa")
 		B = np.sign(W*A).astype(int)
 		if np.array_equal(A,B):
 			stable = True
 			for i in range(0, len(patterns)):
 				p = np.transpose(np.matrix(patterns[i]))
+				intermediate_results.append(p)
 				if np.array_equal(B,p):
 					# print(f"reached stable config at pattern {i}")
 					spurious_state = False
@@ -326,13 +332,15 @@ if __name__ == '__main__':
 	all_patterns_as_matrixes = list(all_letters.values())
 	all_patterns_as_lists = convert_pattern_to_list(all_patterns_as_matrixes)
 
-	letter = 'H'
+	letter = 'A'
 	letter_pattern = all_letters[letter]
 	letter_pattern = convert_pattern_to_list([letter_pattern])[0]
 
 	most_ortogonals = get_ortogonals(letter, letter_pattern)
 
 	most_ortogonals = most_ortogonals[0:4]
+
+	# most_ortogonals = ['A', 'B', 'C', 'D']
 
 	print(most_ortogonals)
 
