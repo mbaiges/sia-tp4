@@ -29,8 +29,6 @@ if __name__ == "__main__":
     name_and_features = ["Country"].extend(features)
 
     df = pd.read_csv(europe_csv, names=name_and_features)
-    df = df[1:]
-    df.index = range(0,len(df))
 
     X = df.loc[:, df.columns != "Country"]
 

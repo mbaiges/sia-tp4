@@ -46,8 +46,8 @@ class Neuron:
         # print(f'learning_level * s * (entry - s*self.weights) = {learning_level * s * (entry - s*self.weights)}')
         # print("----------------------------------------------")
 
-        # self.weights = self.weights + learning_level * s * (entry - s*self.weights) # filminas
-        self.weights = self.weights + learning_level * s * (entry - self.weights*s) # https://www.cse-lab.ethz.ch/wp-content/uploads/2019/10/tutorial_3_ojas_rule_pdf.pdf 
+        self.weights = self.weights + learning_level * s * (entry - s*self.weights) # filminas
+        # self.weights = self.weights + learning_level * s * (entry - self.weights*s) # https://www.cse-lab.ethz.ch/wp-content/uploads/2019/10/tutorial_3_ojas_rule_pdf.pdf 
 
         # w = self.weights
         # norma = math.sqrt(sum(w*w))
