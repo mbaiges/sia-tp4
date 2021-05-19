@@ -127,74 +127,7 @@ def process_input(output_neuron_mtx, entry, radius, eta_f, it):
 	update_neighbours(output_neuron_mtx, (best_i, best_j), entry, radius, eta_f, it)
 	return 0
 
-def display_results(output_neuron_mtx):
-	k = len(output_neuron_mtx)
-	a = np.zeros((k, k))
-	for i in range(0,k):
-		for j in range (0,k):
-			a[i,j] = output_neuron_mtx[i][j].hit_count
-
-	fig, ax = plt.subplots()
-	k = len(output_neuron_mtx)
-	ax.set_title(f'Entries per node with k={k}')
-	im = plt.imshow(a, cmap='hot', interpolation='nearest')
-	ax.set_xticks(np.arange(k))
-	ax.set_yticks(np.arange(k))
-	ax.set_xticklabels(range(k))
-	ax.set_yticklabels(range(k))
-
-	# Loop over data dimensions and create text annotations.
-	max_val = np.amax(np.array(a))
-
-	for i in range(k):
-		for j in range(k):
-			if a[i][j] > max_val/2:
-				color = "k"
-			else:
-				color = "w"
-			text = ax.text(j, i, f'{int(a[i][j])}', ha="center", va="center", color=color)
-
-	plt.colorbar(im)
-	plt.show()
-
-def display_u_matrix(output_neuron_mtx, radius): #grey matrix
-	k = len(output_neuron_mtx)
-	a = np.zeros((k, k))
-	for i in range(0,k):
-		for j in range (0,k):
-			ne = get_neighbours(output_neuron_mtx, (i,j), radius)
-			#print(ne)
-			d = 0.0
-			cant = len(ne)
-			for (ne_i, ne_j) in ne:
-				d += get_distance(output_neuron_mtx[i][j].weights,output_neuron_mtx[ne_i][ne_j].weights)
-			a[i,j] = d/cant
-
-	fig, ax = plt.subplots()
-	k = len(output_neuron_mtx)
-	ax.set_title(f'U Matrix with k={k}')
-	im = plt.imshow(a, cmap='Greys', interpolation='nearest')
-	ax.set_xticks(np.arange(k))
-	ax.set_yticks(np.arange(k))
-	ax.set_xticklabels(range(k))
-	ax.set_yticklabels(range(k))
-
-	# Loop over data dimensions and create text annotations.
-	max_val = np.amax(np.array(a))
-
-	for i in range(k):
-		for j in range(k):
-			if a[i][j] > max_val/2:
-				color = "w"
-			else:
-				color = "k"
-			text = ax.text(j, i, f'{a[i][j]:.3f}', ha="center", va="center", color=color)
-
-	plt.colorbar(im)
-	plt.show()
-
-
-def display_final_assignments(data, std_data, output_neuron_mtx):
+def display_countriex_x_countries_assignments(data, std_data, output_neuron_mtx):
 	k = len(output_neuron_mtx)
 	names = [ [ [] for j in range(0, k) ] for i in range(0, k) ]
 	a = np.zeros((k, k))
@@ -259,9 +192,6 @@ def kohonen(entries, k, initial_radius, init_with_dataset, eta_f):
             process_input(output_neuron_mtx, entry, radius, eta_f, epoch+1)
         if radius - 1 > 1:
             radius -= 1 #TODO: Lo podemos complejizar despues para que sea mas adaptativo el radio
-        
-    display_results(output_neuron_mtx)
-    display_u_matrix(output_neuron_mtx, radius)
 
     return output_neuron_mtx
     
@@ -277,15 +207,65 @@ if __name__ == '__main__':
     std_data = standardize_data(data)
 
     # kohonen
-    k = 2
+    k = 3
     radius = math.sqrt(2)
     init_with_dataset = True
     
     def eta_f(i):
         return 1.0/i
 
-    output_neuron_mtx = kohonen(std_data, k, radius, init_with_dataset, eta_f)
+    iterations = 100
 
-    display_final_assignments(df, std_data, output_neuron_mtx)
+    countries_list = df['Country'].values.tolist()
+    countries_len = len(countries_list)
+    countries_x_countries = np.zeros((countries_len, countries_len))
+
+    for it in range(0, iterations):
+
+        print(f'iteration: {it}')
+
+        output_neuron_mtx = kohonen(std_data, k, radius, init_with_dataset, eta_f)
+
+        names = [ [ [] for j in range(0, k) ] for i in range(0, k) ]
+
+        for i in range(0, std_data.shape[0]):
+            entry = std_data[i]
+            (x,y) = find_neuron(output_neuron_mtx, entry)
+            names[x][y].append(i)
+
+        for l in range(0, len(names)):
+            for m in range(0, len(names[l])):
+                countries_s = names[l][m]
+
+                for country_idx in countries_s:
+                    for other_country_idx in countries_s:
+                        if country_idx != other_country_idx:
+                            countries_x_countries[country_idx, other_country_idx] += 1
+
+    fig, ax = plt.subplots()
+    k = len(output_neuron_mtx)
+    ax.set_title(f'Final countries matchings with k={k} and {iterations} iterations')
+    im = plt.imshow(countries_x_countries, cmap='hot', interpolation='nearest')
+    
+    x_ticks_rotation = 70
+    plt.xticks(rotation=x_ticks_rotation)
+
+    ax.set_xticks(np.arange(countries_len))
+    ax.set_yticks(np.arange(countries_len))
+    ax.set_xticklabels(countries_list)
+    ax.set_yticklabels(countries_list)
+
+    max_val = np.amax(np.array(countries_x_countries))
+
+    for i in range(countries_len):
+        for j in range(countries_len):
+            if countries_x_countries[i][j] > max_val/2:
+                color = "k"
+            else:
+                color = "w"
+            text = ax.text(j, i, f'{int(countries_x_countries[i, j])}', ha="center", va="center", color=color)
+
+    plt.colorbar(im)
+    plt.show()
 
     exit(0)
