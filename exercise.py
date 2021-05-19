@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     for i, component in enumerate(pca.components_):
         print("{} component: {}% of initial variance".format(i + 1, round(100 * pca.explained_variance_ratio_[i], 2)))
-        print(" + ".join("%.8f x %s" % (value, name) for value, name in zip(component, features)))
+        print(" + ".join("%.3f x %s" % (value, name) for value, name in zip(component, features)))
 
     print(X_pca)
 
